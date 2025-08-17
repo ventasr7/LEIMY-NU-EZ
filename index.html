@@ -14,14 +14,14 @@
             width: 6px;
         }
         #chat-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #fdf2f8; /* Rosa muy claro */
         }
         #chat-container::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #f472b6; /* Rosa */
             border-radius: 3px;
         }
         #chat-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #ec4899; /* Rosa más oscuro */
         }
         .chat-bubble {
             opacity: 0;
@@ -39,19 +39,19 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="bg-pink-50 flex items-center justify-center h-screen">
     <div class="w-full max-w-2xl h-full md:h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col p-4 md:p-6">
         <!-- Encabezado -->
-        <header class="border-b pb-4 mb-4">
-            <h1 class="text-2xl font-bold text-gray-800 text-center">LEIMY IA </h1>
+        <header class="border-b border-pink-200 pb-4 mb-4">
+            <h1 class="text-2xl font-bold text-pink-800 text-center">LEIMY IA</h1>
             <p class="text-sm text-gray-500 text-center">Analiza y crea imágenes, o simplemente chatea.</p>
         </header>
 
         <!-- Contenedor del Chat -->
-        <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-lg">
+        <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-pink-50 rounded-lg">
             <div class="flex justify-start chat-bubble">
-                <div class="bg-indigo-500 text-white p-3 rounded-lg max-w-lg">
-                    <p>¡Hola SOY leimy Nuñez ! Ahora puedo entender y generar imágenes. Sube una foto o pídeme que cree algo.</p>
+                <div class="bg-pink-500 text-white p-3 rounded-lg max-w-lg">
+                    <p>¡Hola Soy LEIMY NUÑEZ ! Con mi nuevo estilo, estoy lista para ayudarte. Pídeme que cree una imagen o sube una para analizarla.</p>
                 </div>
             </div>
         </main>
@@ -59,7 +59,7 @@
         <!-- Spinner de Carga -->
         <div id="loading-spinner" class="hidden flex items-center justify-center p-4">
             <div class="flex items-center space-x-2 text-gray-500">
-                <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin h-5 w-5 text-pink-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -73,19 +73,19 @@
         </div>
 
         <!-- Entrada de Texto -->
-        <footer class="mt-4 pt-4 border-t">
+        <footer class="mt-4 pt-4 border-t border-pink-200">
              <!-- Vista previa de la imagen -->
             <div id="image-preview-container" class="mb-2 hidden relative w-28 h-28">
                 <img id="image-preview" class="rounded-lg w-full h-full object-cover" src="">
                 <button id="remove-image-btn" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md">&times;</button>
             </div>
-            <div class="flex items-center bg-white border rounded-lg overflow-hidden shadow-sm">
+            <div class="flex items-center bg-white border border-pink-200 rounded-lg overflow-hidden shadow-sm">
                 <input type="file" id="image-upload" class="hidden" accept="image/*">
-                <button id="upload-btn" class="p-3 text-gray-500 hover:text-indigo-600">
+                <button id="upload-btn" class="p-3 text-gray-500 hover:text-pink-600">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                 </button>
                 <input type="text" id="user-input" placeholder="Escribe un mensaje o sube una imagen..." class="w-full p-3 border-0 focus:ring-0 text-gray-700" autocomplete="off">
-                <button id="send-btn" class="bg-indigo-500 text-white px-6 py-3 hover:bg-indigo-600 transition-colors duration-300">
+                <button id="send-btn" class="bg-pink-500 text-white px-6 py-3 hover:bg-pink-600 transition-colors duration-300">
                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
             </div>
@@ -96,7 +96,7 @@
         // ===================================================================================
         // ZONA DE CONFIGURACIÓN IMPORTANTE
         // ===================================================================================
-        const API_KEY = "AIzaSyA_kdvcnK_e_bLFCL3Tt9JDcbB6FhBU8aE"; // <-- ¡¡¡ PEGA TU CLAVE API DE GOOGLE AI STUDIO AQUÍ !!!
+        const API_KEY = "AIzaSyDcVKXQUp5aT-s7dph4HZdkg0RsyvcNq6c"; // <-- ¡¡¡ PEGA TU CLAVE API DE GOOGLE AI STUDIO AQUÍ !!!
         // ===================================================================================
 
         const chatContainer = document.getElementById('chat-container');
@@ -124,7 +124,7 @@
             messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-lg');
             if (content.type === 'text') {
                 messageDiv.innerHTML = content.data.replace(/\n/g, '<br>');
-                messageDiv.classList.add(sender === 'user' ? 'bg-gray-200' : 'bg-indigo-500', sender === 'user' ? 'text-gray-800' : 'text-white');
+                messageDiv.classList.add(sender === 'user' ? 'bg-gray-200' : 'bg-pink-500', sender === 'user' ? 'text-gray-800' : 'text-white');
             } else if (content.type === 'image') {
                 const img = document.createElement('img');
                 img.src = content.data;
@@ -240,14 +240,23 @@
             throw new Error("Respuesta de chat/visión inválida de la API.");
         }
 
+        // --- FUNCIÓN DE GENERACIÓN DE IMAGEN CORREGIDA ---
         async function generateImage(prompt) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${API_KEY}`;
-            const payload = { instances: [{ prompt }], parameters: { "sampleCount": 1 } };
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${API_KEY}`;
+            const payload = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    responseModalities: ['TEXT', 'IMAGE']
+                },
+            };
             const result = await apiFetchWithRetry(apiUrl, payload);
-            if (result.predictions && result.predictions[0]?.bytesBase64Encoded) {
-                return result.predictions[0].bytesBase64Encoded;
+            const imagePart = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+            if (imagePart) {
+                return imagePart.inlineData.data;
             }
-            throw new Error("Respuesta de generación de imagen inválida de la API.");
+            throw new Error("No se pudo generar la imagen con el modelo gratuito.");
         }
 
         // --- Event Listeners ---
