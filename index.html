@@ -43,7 +43,7 @@
     <div class="w-full max-w-2xl h-full md:h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col p-4 md:p-6">
         <!-- Encabezado -->
         <header class="border-b pb-4 mb-4">
-            <h1 class="text-2xl font-bold text-gray-800 text-center">LEIMY IA</h1>
+            <h1 class="text-2xl font-bold text-gray-800 text-center">LEIMY IA </h1>
             <p class="text-sm text-gray-500 text-center">Analiza y crea imágenes, o simplemente chatea.</p>
         </header>
 
@@ -51,7 +51,7 @@
         <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-lg">
             <div class="flex justify-start chat-bubble">
                 <div class="bg-indigo-500 text-white p-3 rounded-lg max-w-lg">
-                    <p>¡Hola! Ahora puedo entender y generar imágenes. Sube una foto o pídeme que cree algo.</p>
+                    <p>¡Hola SOY leimy Nuñez ! Ahora puedo entender y generar imágenes. Sube una foto o pídeme que cree algo.</p>
                 </div>
             </div>
         </main>
@@ -69,7 +69,7 @@
         
         <!-- Área de Mensaje de Error -->
         <div id="error-message" class="hidden text-center p-2 text-red-500 bg-red-100 rounded-lg">
-            <p>Lo siento, ocurrió un error. Por favor, inténtalo de nuevo.</p>
+            <p id="error-text">Lo siento, ocurrió un error. Por favor, inténtalo de nuevo.</p>
         </div>
 
         <!-- Entrada de Texto -->
@@ -93,12 +93,19 @@
     </div>
 
     <script>
+        // ===================================================================================
+        // ZONA DE CONFIGURACIÓN IMPORTANTE
+        // ===================================================================================
+        const API_KEY = "AIzaSyA_kdvcnK_e_bLFCL3Tt9JDcbB6FhBU8aE"; // <-- ¡¡¡ PEGA TU CLAVE API DE GOOGLE AI STUDIO AQUÍ !!!
+        // ===================================================================================
+
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const loadingSpinner = document.getElementById('loading-spinner');
         const loadingText = document.getElementById('loading-text');
         const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
         const imageUpload = document.getElementById('image-upload');
         const uploadBtn = document.getElementById('upload-btn');
         const imagePreviewContainer = document.getElementById('image-preview-container');
@@ -109,20 +116,12 @@
         let uploadedImageBase64 = null;
 
         // --- Funciones de la Interfaz (UI) ---
-
         function addMessage(sender, content) {
             const messageWrapper = document.createElement('div');
             messageWrapper.classList.add('flex', 'chat-bubble');
-            
-            if (sender === 'user') {
-                messageWrapper.classList.add('justify-end');
-            } else {
-                messageWrapper.classList.add('justify-start');
-            }
-
+            messageWrapper.classList.add(sender === 'user' ? 'justify-end' : 'justify-start');
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-lg');
-            
             if (content.type === 'text') {
                 messageDiv.innerHTML = content.data.replace(/\n/g, '<br>');
                 messageDiv.classList.add(sender === 'user' ? 'bg-gray-200' : 'bg-indigo-500', sender === 'user' ? 'text-gray-800' : 'text-white');
@@ -133,7 +132,6 @@
                 messageDiv.classList.add('p-1');
                 messageDiv.appendChild(img);
             }
-            
             messageWrapper.appendChild(messageDiv);
             chatContainer.appendChild(messageWrapper);
             chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -141,29 +139,30 @@
 
         function resetImageUpload() {
             uploadedImageBase64 = null;
-            imageUpload.value = ''; // Resetea el input de archivo
+            imageUpload.value = '';
             imagePreviewContainer.classList.add('hidden');
         }
         
-        // --- Lógica Principal de Envío ---
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
 
+        // --- Lógica Principal de Envío ---
         async function handleSendMessage() {
+            if (API_KEY === "PON_TU_CLAVE_API_AQUÍ") {
+                showError("Error: Falta la clave de API. Por favor, añádela en el código.");
+                return;
+            }
             const prompt = userInput.value.trim();
             if (prompt === '' && !uploadedImageBase64) return;
 
             errorMessage.classList.add('hidden');
-            
-            // Añadir mensaje del usuario a la UI
-            if (uploadedImageBase64) {
-                addMessage('user', { type: 'image', data: uploadedImageBase64 });
-            }
-            if (prompt) {
-                addMessage('user', { type: 'text', data: prompt });
-            }
+            if (uploadedImageBase64) addMessage('user', { type: 'image', data: uploadedImageBase64 });
+            if (prompt) addMessage('user', { type: 'text', data: prompt });
 
             userInput.value = '';
             const isImageGenRequest = prompt.toLowerCase().startsWith("crea") || prompt.toLowerCase().startsWith("dibuja") || prompt.toLowerCase().startsWith("genera");
-
             loadingText.textContent = isImageGenRequest ? "Creando imagen..." : "Pensando...";
             loadingSpinner.classList.remove('hidden');
 
@@ -175,7 +174,7 @@
                 }
             } catch (error) {
                 console.error("Error en la operación de IA:", error);
-                errorMessage.classList.remove('hidden');
+                showError(`Error: ${error.message}`);
             } finally {
                 loadingSpinner.classList.add('hidden');
                 resetImageUpload();
@@ -183,44 +182,34 @@
         }
 
         // --- Lógica de Llamadas a la API ---
-
         async function handleImageGeneration(prompt) {
             const generatedImageBase64 = await generateImage(prompt);
-            if (generatedImageBase64) {
-                const imageUrl = `data:image/png;base64,${generatedImageBase64}`;
-                addMessage('ai', { type: 'image', data: imageUrl });
-                addMessage('ai', { type: 'text', data: '¡Aquí tienes la imagen que pediste!' });
-            } else {
-                throw new Error("No se pudo generar la imagen.");
-            }
+            const imageUrl = `data:image/png;base64,${generatedImageBase64}`;
+            addMessage('ai', { type: 'image', data: imageUrl });
+            addMessage('ai', { type: 'text', data: '¡Aquí tienes la imagen que pediste!' });
         }
         
         async function handleChatOrVision(prompt) {
-            // Construir el historial y el contenido actual
             const currentContent = { role: "user", parts: [] };
-            if (prompt) {
-                currentContent.parts.push({ text: prompt });
-            }
+            if (prompt) currentContent.parts.push({ text: prompt });
             if (uploadedImageBase64) {
                 currentContent.parts.push({
                     inlineData: {
-                        mimeType: "image/png", // Asumimos PNG, se puede mejorar para detectar tipo
+                        mimeType: "image/png",
                         data: uploadedImageBase64.split(',')[1]
                     }
                 });
             }
-            
             const payloadContents = [...chatHistory, currentContent];
-
             const aiResponseText = await getVisionOrChatResponse(payloadContents);
             addMessage('ai', { type: 'text', data: aiResponseText });
-            
-            // Actualizar historial
             chatHistory.push(currentContent);
             chatHistory.push({ role: "model", parts: [{ text: aiResponseText }] });
         }
 
-        async function apiFetchWithRetry(apiUrl, payload, retries = 3, delay = 1000) {
+        async function apiFetchWithRetry(apiUrl, payload) {
+            let retries = 3;
+            let delay = 1000;
             while (retries > 0) {
                 try {
                     const response = await fetch(apiUrl, {
@@ -229,9 +218,10 @@
                         body: JSON.stringify(payload)
                     });
                     if (response.ok) return await response.json();
-                    throw new Error(`Error de API: ${response.statusText}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `Error de API: ${response.status}`);
                 } catch (error) {
-                    console.warn(`Intento fallido. Reintentando en ${delay / 1000}s...`);
+                    console.warn(`Intento fallido. Reintentando...`);
                     retries--;
                     if (retries === 0) throw error;
                     await new Promise(resolve => setTimeout(resolve, delay));
@@ -241,35 +231,30 @@
         }
 
         async function getVisionOrChatResponse(contents) {
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
             const payload = { contents };
             const result = await apiFetchWithRetry(apiUrl, payload);
-            if (result.candidates && result.candidates[0].content.parts[0].text) {
+             if (result.candidates && result.candidates.length > 0 && result.candidates[0].content?.parts[0]?.text) {
                 return result.candidates[0].content.parts[0].text;
             }
-            throw new Error("Respuesta de chat/visión inválida de la API");
+            throw new Error("Respuesta de chat/visión inválida de la API.");
         }
 
         async function generateImage(prompt) {
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${API_KEY}`;
             const payload = { instances: [{ prompt }], parameters: { "sampleCount": 1 } };
             const result = await apiFetchWithRetry(apiUrl, payload);
-            if (result.predictions && result.predictions[0].bytesBase64Encoded) {
+            if (result.predictions && result.predictions[0]?.bytesBase64Encoded) {
                 return result.predictions[0].bytesBase64Encoded;
             }
-            throw new Error("Respuesta de generación de imagen inválida de la API");
+            throw new Error("Respuesta de generación de imagen inválida de la API.");
         }
 
         // --- Event Listeners ---
-        
         uploadBtn.addEventListener('click', () => imageUpload.click());
-        
         imageUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onloadend = () => {
                 uploadedImageBase64 = reader.result;
@@ -278,7 +263,6 @@
             };
             reader.readAsDataURL(file);
         });
-
         removeImageBtn.addEventListener('click', resetImageUpload);
         sendBtn.addEventListener('click', handleSendMessage);
         userInput.addEventListener('keydown', (event) => {
