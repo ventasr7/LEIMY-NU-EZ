@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de IA Avanzado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        #chat-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        #chat-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .chat-bubble {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slide-in 0.5s forwards;
+        }
+        @keyframes slide-in {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        #image-preview-container {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="w-full max-w-2xl h-full md:h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col p-4 md:p-6">
+        <!-- Encabezado -->
+        <header class="border-b pb-4 mb-4">
+            <h1 class="text-2xl font-bold text-gray-800 text-center">LEIMY IA</h1>
+            <p class="text-sm text-gray-500 text-center">Analiza y crea imágenes, o simplemente chatea.</p>
+        </header>
+
+        <!-- Contenedor del Chat -->
+        <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-lg">
+            <div class="flex justify-start chat-bubble">
+                <div class="bg-indigo-500 text-white p-3 rounded-lg max-w-lg">
+                    <p>¡Hola! Ahora puedo entender y generar imágenes. Sube una foto o pídeme que cree algo.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Spinner de Carga -->
+        <div id="loading-spinner" class="hidden flex items-center justify-center p-4">
+            <div class="flex items-center space-x-2 text-gray-500">
+                <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="loading-text">Pensando...</span>
+            </div>
+        </div>
+        
+        <!-- Área de Mensaje de Error -->
+        <div id="error-message" class="hidden text-center p-2 text-red-500 bg-red-100 rounded-lg">
+            <p>Lo siento, ocurrió un error. Por favor, inténtalo de nuevo.</p>
+        </div>
+
+        <!-- Entrada de Texto -->
+        <footer class="mt-4 pt-4 border-t">
+             <!-- Vista previa de la imagen -->
+            <div id="image-preview-container" class="mb-2 hidden relative w-28 h-28">
+                <img id="image-preview" class="rounded-lg w-full h-full object-cover" src="">
+                <button id="remove-image-btn" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md">&times;</button>
+            </div>
+            <div class="flex items-center bg-white border rounded-lg overflow-hidden shadow-sm">
+                <input type="file" id="image-upload" class="hidden" accept="image/*">
+                <button id="upload-btn" class="p-3 text-gray-500 hover:text-indigo-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                </button>
+                <input type="text" id="user-input" placeholder="Escribe un mensaje o sube una imagen..." class="w-full p-3 border-0 focus:ring-0 text-gray-700" autocomplete="off">
+                <button id="send-btn" class="bg-indigo-500 text-white px-6 py-3 hover:bg-indigo-600 transition-colors duration-300">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const loadingText = document.getElementById('loading-text');
+        const errorMessage = document.getElementById('error-message');
+        const imageUpload = document.getElementById('image-upload');
+        const uploadBtn = document.getElementById('upload-btn');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image-btn');
+
+        let chatHistory = [];
+        let uploadedImageBase64 = null;
+
+        // --- Funciones de la Interfaz (UI) ---
+
+        function addMessage(sender, content) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('flex', 'chat-bubble');
+            
+            if (sender === 'user') {
+                messageWrapper.classList.add('justify-end');
+            } else {
+                messageWrapper.classList.add('justify-start');
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-lg');
+            
+            if (content.type === 'text') {
+                messageDiv.innerHTML = content.data.replace(/\n/g, '<br>');
+                messageDiv.classList.add(sender === 'user' ? 'bg-gray-200' : 'bg-indigo-500', sender === 'user' ? 'text-gray-800' : 'text-white');
+            } else if (content.type === 'image') {
+                const img = document.createElement('img');
+                img.src = content.data;
+                img.classList.add('rounded-lg', 'max-w-xs', 'h-auto');
+                messageDiv.classList.add('p-1');
+                messageDiv.appendChild(img);
+            }
+            
+            messageWrapper.appendChild(messageDiv);
+            chatContainer.appendChild(messageWrapper);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function resetImageUpload() {
+            uploadedImageBase64 = null;
+            imageUpload.value = ''; // Resetea el input de archivo
+            imagePreviewContainer.classList.add('hidden');
+        }
+        
+        // --- Lógica Principal de Envío ---
+
+        async function handleSendMessage() {
+            const prompt = userInput.value.trim();
+            if (prompt === '' && !uploadedImageBase64) return;
+
+            errorMessage.classList.add('hidden');
+            
+            // Añadir mensaje del usuario a la UI
+            if (uploadedImageBase64) {
+                addMessage('user', { type: 'image', data: uploadedImageBase64 });
+            }
+            if (prompt) {
+                addMessage('user', { type: 'text', data: prompt });
+            }
+
+            userInput.value = '';
+            const isImageGenRequest = prompt.toLowerCase().startsWith("crea") || prompt.toLowerCase().startsWith("dibuja") || prompt.toLowerCase().startsWith("genera");
+
+            loadingText.textContent = isImageGenRequest ? "Creando imagen..." : "Pensando...";
+            loadingSpinner.classList.remove('hidden');
+
+            try {
+                if (isImageGenRequest) {
+                    await handleImageGeneration(prompt);
+                } else {
+                    await handleChatOrVision(prompt);
+                }
+            } catch (error) {
+                console.error("Error en la operación de IA:", error);
+                errorMessage.classList.remove('hidden');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                resetImageUpload();
+            }
+        }
+
+        // --- Lógica de Llamadas a la API ---
+
+        async function handleImageGeneration(prompt) {
+            const generatedImageBase64 = await generateImage(prompt);
+            if (generatedImageBase64) {
+                const imageUrl = `data:image/png;base64,${generatedImageBase64}`;
+                addMessage('ai', { type: 'image', data: imageUrl });
+                addMessage('ai', { type: 'text', data: '¡Aquí tienes la imagen que pediste!' });
+            } else {
+                throw new Error("No se pudo generar la imagen.");
+            }
+        }
+        
+        async function handleChatOrVision(prompt) {
+            // Construir el historial y el contenido actual
+            const currentContent = { role: "user", parts: [] };
+            if (prompt) {
+                currentContent.parts.push({ text: prompt });
+            }
+            if (uploadedImageBase64) {
+                currentContent.parts.push({
+                    inlineData: {
+                        mimeType: "image/png", // Asumimos PNG, se puede mejorar para detectar tipo
+                        data: uploadedImageBase64.split(',')[1]
+                    }
+                });
+            }
+            
+            const payloadContents = [...chatHistory, currentContent];
+
+            const aiResponseText = await getVisionOrChatResponse(payloadContents);
+            addMessage('ai', { type: 'text', data: aiResponseText });
+            
+            // Actualizar historial
+            chatHistory.push(currentContent);
+            chatHistory.push({ role: "model", parts: [{ text: aiResponseText }] });
+        }
+
+        async function apiFetchWithRetry(apiUrl, payload, retries = 3, delay = 1000) {
+            while (retries > 0) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) return await response.json();
+                    throw new Error(`Error de API: ${response.statusText}`);
+                } catch (error) {
+                    console.warn(`Intento fallido. Reintentando en ${delay / 1000}s...`);
+                    retries--;
+                    if (retries === 0) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        async function getVisionOrChatResponse(contents) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents };
+            const result = await apiFetchWithRetry(apiUrl, payload);
+            if (result.candidates && result.candidates[0].content.parts[0].text) {
+                return result.candidates[0].content.parts[0].text;
+            }
+            throw new Error("Respuesta de chat/visión inválida de la API");
+        }
+
+        async function generateImage(prompt) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            const payload = { instances: [{ prompt }], parameters: { "sampleCount": 1 } };
+            const result = await apiFetchWithRetry(apiUrl, payload);
+            if (result.predictions && result.predictions[0].bytesBase64Encoded) {
+                return result.predictions[0].bytesBase64Encoded;
+            }
+            throw new Error("Respuesta de generación de imagen inválida de la API");
+        }
+
+        // --- Event Listeners ---
+        
+        uploadBtn.addEventListener('click', () => imageUpload.click());
+        
+        imageUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                uploadedImageBase64 = reader.result;
+                imagePreview.src = uploadedImageBase64;
+                imagePreviewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        removeImageBtn.addEventListener('click', resetImageUpload);
+        sendBtn.addEventListener('click', handleSendMessage);
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleSendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
