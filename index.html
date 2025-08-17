@@ -17,11 +17,11 @@
             background: #fdf2f8; /* Rosa muy claro */
         }
         #chat-container::-webkit-scrollbar-thumb {
-            background: #f472b6; /* Rosa */
+            background: #007e13; /* Rosa */
             border-radius: 3px;
         }
         #chat-container::-webkit-scrollbar-thumb:hover {
-            background: #ec4899; /* Rosa más oscuro */
+            background: #018b1a; /* Rosa más oscuro */
         }
         .chat-bubble {
             opacity: 0;
@@ -37,21 +37,43 @@
         #image-preview-container {
             transition: all 0.3s ease-in-out;
         }
+        .blur-background {
+            filter: blur(8px);
+            transition: filter 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-pink-50 flex items-center justify-center h-screen">
-    <div class="w-full max-w-2xl h-full md:h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col p-4 md:p-6">
+
+    <!-- Pantalla de Login -->
+    <div id="login-modal" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold text-pink-800 mb-4">Iniciar Sesión</h2>
+            <p class="text-gray-600 mb-6">Ingresa tus credenciales para continuar.</p>
+            <div class="space-y-4">
+                <input type="text" id="login-code" placeholder="Código de usuario" class="w-full p-3 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-transparent">
+                <input type="password" id="login-password" placeholder="Contraseña" class="w-full p-3 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-transparent">
+            </div>
+            <button id="login-btn" class="w-full bg-pink-500 text-white py-3 mt-6 rounded-lg hover:bg-pink-600 transition-colors duration-300 font-semibold">
+                Entrar
+            </button>
+            <p id="login-error" class="text-red-500 mt-4 text-sm hidden">Código o contraseña incorrectos.</p>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal de la App -->
+    <div id="app-container" class="w-full max-w-2xl h-full md:h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col p-4 md:p-6 blur-background">
         <!-- Encabezado -->
         <header class="border-b border-pink-200 pb-4 mb-4">
             <h1 class="text-2xl font-bold text-pink-800 text-center">LEIMY IA</h1>
-            <p class="text-sm text-gray-500 text-center">Analiza y crea imágenes, o simplemente chatea.</p>
+            <p class="text-sm text-gray-500 text-center">Analiza </p>
         </header>
 
         <!-- Contenedor del Chat -->
         <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-pink-50 rounded-lg">
             <div class="flex justify-start chat-bubble">
                 <div class="bg-pink-500 text-white p-3 rounded-lg max-w-lg">
-                    <p>¡Hola Soy LEIMY NUÑEZ ! Con mi nuevo estilo, estoy lista para ayudarte. Pídeme que cree una imagen o sube una para analizarla.</p>
+                    <p>¡Hola! Con mi nuevo estilo, estoy lista para ayudarte.</p>
                 </div>
             </div>
         </main>
@@ -96,8 +118,18 @@
         // ===================================================================================
         // ZONA DE CONFIGURACIÓN IMPORTANTE
         // ===================================================================================
-        const API_KEY = "AIzaSyDcVKXQUp5aT-s7dph4HZdkg0RsyvcNq6c"; // <-- ¡¡¡ PEGA TU CLAVE API DE GOOGLE AI STUDIO AQUÍ !!!
+        const API_KEY = "AIzaSyBfEqgWYaTAmQjtLmZkLjtz7P34cXjH_So"; // <-- ¡¡¡ PEGA TU CLAVE API DE GOOGLE AI STUDIO AQUÍ !!!
+        const CORRECT_CODE = "1234";
+        const CORRECT_PASSWORD = "1234";
         // ===================================================================================
+
+        // --- Elementos del DOM ---
+        const appContainer = document.getElementById('app-container');
+        const loginModal = document.getElementById('login-modal');
+        const loginBtn = document.getElementById('login-btn');
+        const loginCodeInput = document.getElementById('login-code');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginError = document.getElementById('login-error');
 
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
@@ -114,6 +146,19 @@
 
         let chatHistory = [];
         let uploadedImageBase64 = null;
+
+        // --- Lógica de Login ---
+        function checkLogin() {
+            const code = loginCodeInput.value;
+            const password = loginPasswordInput.value;
+
+            if (code === CORRECT_CODE && password === CORRECT_PASSWORD) {
+                loginModal.style.display = 'none';
+                appContainer.classList.remove('blur-background');
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        }
 
         // --- Funciones de la Interfaz (UI) ---
         function addMessage(sender, content) {
@@ -240,7 +285,6 @@
             throw new Error("Respuesta de chat/visión inválida de la API.");
         }
 
-        // --- FUNCIÓN DE GENERACIÓN DE IMAGEN CORREGIDA ---
         async function generateImage(prompt) {
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${API_KEY}`;
             const payload = {
@@ -260,6 +304,11 @@
         }
 
         // --- Event Listeners ---
+        loginBtn.addEventListener('click', checkLogin);
+        loginPasswordInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') checkLogin();
+        });
+
         uploadBtn.addEventListener('click', () => imageUpload.click());
         imageUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
